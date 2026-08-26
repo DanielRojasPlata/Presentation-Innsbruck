@@ -1,0 +1,2185 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Presentación Interactiva</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cardo:ital,wght@0,400;0,700;1,400&family=Outfit:wght@300;500;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #17202A;
+            /* Azul oscuro del fondo de la imagen */
+            --bg-gradient-start: #212F3C;
+            --bg-gradient-end: #121921;
+            --text-color: #FDFEFE;
+            --text-muted: #D5D8DC;
+            --accent-color: #D35400;
+            /* Naranja/Terracota de la túnica */
+            --secondary-color: #F1C40F;
+            /* Dorado de los acentos */
+            --gold-color: #C6A664;
+            /* Dorado basado en la imagen */
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+        }
+
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            /* Fondo inspirado en la imagen */
+            background: radial-gradient(circle at top left, var(--bg-gradient-start), var(--bg-gradient-end));
+        }
+
+        /* Contenedor principal de la presentación */
+        .presentation {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            perspective: 1000px;
+        }
+
+        /* Estilos base para las diapositivas */
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 2rem;
+            box-sizing: border-box;
+
+            /* Animaciones y Transiciones */
+            opacity: 0;
+            transform: scale(0.95) translateY(20px);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Estado activo (diapositiva visible) */
+        .slide.active {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            pointer-events: auto;
+            z-index: 10;
+        }
+
+        /* Estado pasado (diapositivas anteriores) */
+        .slide.past {
+            opacity: 0;
+            transform: scale(1.05) translateY(-20px);
+            z-index: 1;
+        }
+
+        /* Estado futuro (diapositivas siguientes) */
+        .slide.future {
+            opacity: 0;
+            transform: scale(0.95) translateY(20px);
+            z-index: 1;
+        }
+
+        /* Estilos de tipografía premium */
+        h1 {
+            font-size: 4rem;
+            font-weight: 700;
+            line-height: 1.35;
+            padding-bottom: 0.15em;
+            margin-bottom: 1rem;
+            background: linear-gradient(to right, var(--secondary-color), var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 10px 30px rgba(211, 84, 0, 0.3);
+            letter-spacing: -0.02em;
+        }
+
+        h2 {
+            font-size: 2.5rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+            color: var(--text-color);
+        }
+
+        p {
+            font-size: 1.25rem;
+            font-weight: 300;
+            max-width: 800px;
+            line-height: 1.6;
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+        }
+
+        /* Estilos específicos para la portada */
+        .title-slide {
+            padding: 0;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .fullscreen-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+            /* Oscurecer la imagen para que resalte la caja y el texto */
+            filter: brightness(0.7);
+        }
+
+        .title-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+            max-width: 1040px;
+            width: 85%;
+            text-align: center;
+            /* Cristal más oscuro y desenfocado para la portada */
+            background: rgba(23, 32, 42, 0.5);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 4rem 5rem;
+            border-radius: 24px;
+            box-shadow: 0 24px 48px rgba(0, 0, 0, 0.7);
+            z-index: 1;
+            /* Oculto inicialmente, aparece suavemente */
+            opacity: 0;
+            transform: translateY(20px);
+            pointer-events: none;
+            transition: opacity 2s ease-out, transform 2s ease-out;
+        }
+
+        .title-card.show {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        /* Ajustes específicos para el recuadro de la diapositiva Ejemplos (30% más grande) */
+        #ejemplos-card {
+            transform: translateY(20px) scale(1.3);
+        }
+
+        #ejemplos-card.show {
+            transform: translateY(0) scale(1.3);
+        }
+
+        .title-card .conference-header {
+            font-size: 1.45rem;
+            color: #FFFFFF;
+            font-weight: 500;
+            margin: 0 0 0.5rem 0;
+            line-height: 1.4;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            padding-bottom: 1rem;
+            width: 100%;
+            text-align: center;
+        }
+
+        .title-card .conference-header .institution {
+            display: block;
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            font-weight: 300;
+            margin-top: 0.3rem;
+        }
+
+        .title-card h1 {
+            font-family: 'Cardo', serif;
+            font-size: 2.7rem;
+            line-height: 1.35;
+            padding-bottom: 0.25em;
+            margin-bottom: 0.8rem;
+            text-align: center;
+        }
+
+        .title-card .speaker-info {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .title-card .speaker-info h2 {
+            font-size: 2.0rem;
+            color: var(--text-color);
+            margin: 0;
+        }
+
+        .title-card .speaker-info h3 {
+            font-size: 1.4rem;
+            font-weight: 300;
+            color: var(--text-muted);
+            margin: 0;
+        }
+
+        .title-card .speaker-info .date {
+            font-size: 1.2rem;
+            color: var(--accent-color);
+            margin: 0;
+            font-weight: 500;
+            margin-top: 0.8rem;
+            padding-top: 0.8rem;
+            border-top: 2px solid rgba(255, 255, 255, 0.1);
+            width: 50%;
+        }
+
+        /* Contenedor de contenido sin fondo (uniforme) */
+        .content-card {
+            padding: 2rem 4rem;
+            max-width: 1200px;
+            width: 90%;
+            text-align: left;
+            transform: translateY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .content-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .content-card h2 {
+            font-size: 3rem;
+            color: var(--secondary-color);
+            margin-bottom: 2rem;
+            border-bottom: 2px solid var(--glass-border);
+            padding-bottom: 1rem;
+        }
+
+        .content-card ul {
+            font-size: 1.5rem;
+            line-height: 1.8;
+            color: var(--text-color);
+            padding-left: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .content-card li {
+            margin-bottom: 1rem;
+        }
+
+        .content-card li::marker {
+            color: var(--accent-color);
+        }
+
+
+        /* --- Nuevos Estilos para Diapositivas a Sangre (Full Bleed) --- */
+        .slide.full-bleed {
+            padding: 0;
+        }
+
+        .split-layout {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            align-items: stretch;
+        }
+
+        .split-layout .column-text {
+            flex: 1.4;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 4rem 6rem;
+        }
+
+        .split-layout .column-image {
+            flex: 0.6;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .split-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            /* Al estar a sangre, no necesita borde redondeado */
+        }
+
+        /* Efecto shade para la imagen: transición suave al fondo y ligero oscurecimiento */
+        .split-image-shade {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                linear-gradient(to right, #17202A 0%, #17202A00 15%),
+                linear-gradient(to top, rgba(0, 0, 0, 0.6) 0%, transparent 35%),
+                linear-gradient(to bottom, rgba(0, 0, 0, 0.3) 0%, transparent 20%);
+            pointer-events: none;
+        }
+
+        .content-card h3 {
+            font-size: 1.8rem;
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+            margin-top: 1.5rem;
+            font-weight: 500;
+        }
+
+        /* Control de pantalla completa */
+        .fullscreen-btn {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.3);
+            padding: 0.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .fullscreen-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        /* Esconder botón en full screen */
+        :fullscreen .fullscreen-btn {
+            display: none;
+        }
+
+        /* --- Lightbox Styles (Zoom Imágenes) --- */
+        .lightbox {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(18, 25, 33, 0.85);
+            /* Fondo oscuro */
+            backdrop-filter: blur(10px);
+            /* Efecto de desenfoque del fondo */
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 1000;
+            overflow: auto;
+            /* Habilita el scroll */
+            text-align: center;
+            /* Ayuda a centrar la imagen horizontalmente */
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+
+        .lightbox.active {
+            opacity: 1;
+            pointer-events: auto;
+            cursor: zoom-out;
+        }
+
+        /* Pseudo-elemento para centrar verticalmente la imagen sin que se corte arriba */
+        .lightbox::before {
+            content: '';
+            display: inline-block;
+            height: 100%;
+            vertical-align: middle;
+        }
+
+        .lightbox img {
+            display: inline-block;
+            vertical-align: middle;
+            margin: 3rem auto;
+            /* Añade margen para tener espacio al hacer scroll */
+            /* --- PARÁMETROS PARA AJUSTAR EL TAMAÑO DE LA IMAGEN AMPLIADA --- */
+            /* Modifica estos valores (por ejemplo, a 80vw o 100vw) para cambiar el tamaño máximo */
+            max-width: 140vw;
+            max-height: 140vh;
+            border-radius: 12px;
+            box-shadow: 0 24px 48px rgba(0, 0, 0, 0.8);
+            transform: scale(0.8);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .lightbox.active img {
+            transform: scale(1);
+        }
+
+        .zoomable-image {
+            cursor: zoom-in;
+            transition: transform 0.3s ease, filter 0.3s ease;
+        }
+
+        .zoomable-image:hover {
+            transform: scale(1.02);
+            filter: brightness(1.1);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Contenedor del Lightbox -->
+    <div id="lightbox" class="lightbox" onclick="closeLightbox(event)">
+        <img id="lightbox-img" src="" alt="Imagen ampliada">
+    </div>
+
+    <button class="fullscreen-btn" onclick="toggleFullScreen()" title="Pantalla Completa">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3">
+            </path>
+        </svg>
+    </button>
+
+    <div class="presentation">
+
+        <!-- Diapositiva 1: Título -->
+        <div class="slide active title-slide">
+            <div class="title-card show">
+                <div class="conference-header">
+                    X. Internationale Arbeitstagung “Romanisch-deutscher und innerromanischer Sprachvergleich”
+                    <span class="institution">Universität Innsbruck</span>
+                </div>
+                <h1>Patrones de causación y eventos complejos <br> en la tipología del movimiento <br> de las lenguas
+                    romances y germanas</h1>
+                <div class="speaker-info">
+                    <h2>Daniel Rojas Plata</h2>
+                    <h3>El Colegio de México</h3>
+                    <h3>Centro de Estudios Lingüísticos y Literarios</h3>
+                    <p class="date">3 de septiembre de 2026</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Diapositiva 2 -->
+        <div class="slide full-bleed">
+            <div class="split-layout">
+                <div class="column-text">
+                    <div class="content-card" style="padding: 0; width: 100%; max-width: none;">
+                        <h2>La expresión lingüística del movimiento como dominio cognitivo</h2>
+                        <p>La expresión del movimiento constituye un dominio fundamental en la conceptualización del
+                            mundo físico.</p>
+                        <p>Los eventos de movimiento causado son especialmente complejos, ya que integran trayectoria,
+                            manera, fuerza y estado resultante, lo que los convierte en un campo idóneo para estudiar la
+                            creatividad lingüística en la codificación del espacio (Lewandowski & Mateu, 2016;
+                            Molés-Cases & Cifuentes-Férez, 2020).</p>
+                        <p>Desde el punto de vista de la tipología, la expresión del movimiento causado implica
+                            profundos procesos de conceptualización, en los que las lenguas organizan la información
+                            referencial en torno a la relación entre causa, figura, movimiento y trayectoria (Kopecka &
+                            Narasimhan, 2012).
+                        </p>
+                    </div>
+                </div>
+                <div class="column-image">
+                    <div class="split-image-shade"></div>
+                    <img src="Images/Diapo 1.png" alt="La ruptura hermenéutica" class="split-image">
+                </div>
+            </div>
+        </div>
+
+        <!-- Diapositiva 3 -->
+        <div class="slide full-bleed">
+            <div class="split-layout">
+                <div class="column-text">
+                    <div class="content-card" style="padding: 0; width: 100%; max-width: none;">
+                        <h2>El marco tipológico clásico de Talmy</h2>
+                        <p>Talmy (1985, 1991, 2000) clasifica las lenguas según la manera en que codifican la
+                            trayectoria, es
+                            decir, el componente semántico central del movimiento</p>
+                        <ul
+                            style="font-size: 1.25rem; font-weight: 300; line-height: 1.6; margin-bottom: 0; padding-left: 1.5rem; color: var(--text-muted);">
+                            <li style="margin-bottom: 0.1rem;">Lenguas de marco satelital (S-framed): codifican la
+                                trayectoria en un satélite externo al verbo, dejando la raíz verbal libre para expresar
+                                la manera. Ejemplos de estas lenguas son el alemán o el neerlandés.</li>
+                            <li style="margin-bottom: 0.9rem;">Lenguas de marco verbal (V-framed): codifican la
+                                trayectoria en la propia raíz verbal, relegando la manera a un adjunto opcional.
+                                Ejemplos de estas lenguas son el francés, el español o el italiano.</li>
+                        </ul>
+                        <p>Esta dicotomía tipológica constituye el eje estructural sobre el que se articula la asimetría
+                            lingüística que el presente proyecto pretende examinar entre las familias romance y
+                            germánica.</p>
+                    </div>
+                </div>
+                <div class="column-image">
+                    <div class="split-image-shade"></div>
+                    <img src="Images/Diapo 3.png" alt="Diapositiva 3" class="split-image">
+                </div>
+            </div>
+        </div>
+
+        <!-- Diapositiva 4 -->
+        <div class="slide full-bleed">
+            <div class="split-layout">
+                <div class="column-image">
+                    <div class="split-image-shade"></div>
+                    <img src="Images/Diapo X.png" alt="Diapositiva 4" class="split-image zoomable-image"
+                        onclick="openLightbox(this.src)">
+                </div>
+                <div class="column-text">
+                    <div class="content-card" style="padding: 0; width: 100%; max-width: none;">
+                        <h2>La variación intratipológica como problema espacial</h2>
+                        <p>Estudios sobre variación intratipológica demuestran que las lenguas emplean un
+                            repertorio morfosintáctico mucho más amplio de lo que la dicotomía clásica predice en
+                            función de factores pragmáticos y contextuales (Beavers et al., 2010; Hickmann et al., 2018;
+                            Lewandowski, 2021).</p>
+                        <ul
+                            style="font-size: 1.25rem; font-weight: 300; line-height: 1.6; margin-bottom: 0; padding-left: 1.5rem; color: var(--text-muted);">
+                            <li style="margin-bottom: 0.1rem;">El francés emplea con frecuencia verbos de manera, pese a
+                                ser V-framed: "<em>Le garçon a sauté dans la piscine</em>."</li>
+                            <li style="margin-bottom: 0.9rem;">El alemán integra verbos de trayectoria de origen
+                                románico, pese a ser S-framed: "<em>Er passierte die Grenze</em>".</li>
+                        </ul>
+                        <p>En este sentido, el análisis no puede limitarse a una comparación binaria, sino que debe
+                            documentar cómo emerge la variación intratipológica en la producción lingüística de
+                            cada lengua analizada.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Diapositiva 5 -->
+        <div class="slide full-bleed">
+            <div class="split-layout">
+                <div class="column-image">
+                    <div class="split-image-shade"></div>
+                    <img src="Images/Diapo 5.png" alt="Diapositiva 5" class="split-image zoomable-image"
+                        onclick="openLightbox(this.src)">
+                </div>
+                <div class="column-text">
+                    <div class="content-card" style="padding: 0; width: 100%; max-width: none;">
+                        <h2>Restricción de cruce de frontera</h2>
+                        <p>Estas asimetrías tipológicas generan dificultades al conceptualizar el movimiento
+                            especialmente en torno a la restricción de cruce de frontera (<em>Boundary Crossing
+                                Constraint</em>).</p>
+                        <p>Esta restricción cognitivo-sintáctica implica que las lenguas V-framed generalmente no
+                            permiten verbos de manera cuando el evento de movimiento implica cruzar un límite espacial
+                            conceptual (Molés-Cases & Cifuentes-Férez, 2020).</p>
+                        <p>Un hablante de alemán puede combinar de forma natural un verbo de manera con una partícula de
+                            cruce de frontera; un hablante de español, en cambio, debe seleccionar un verbo de
+                            trayectoria y expresar la manera mediante un gerundio, o bien omitir la manera para evitar
+                            estructuras sintácticamente pesadas y poco naturales.</p>
+                        <p>En las lenguas romances, el cruce de frontera se conceptualiza como un cambio de estado que
+                            requiere un predicado independiente (Martínez-Vázquez, 2015).</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Diapositiva 6 -->
+        <div class="slide full-bleed">
+            <div class="split-layout">
+                <div class="column-text">
+                    <div class="content-card" style="padding: 0; width: 100%; max-width: none;">
+                        <h2>Objetivo</h2>
+                        <p>Esta investigación articula un puente interdisciplinar entre semántica, sintaxis, cognición y
+                            teoría tipológica.</p>
+                        <p>Busca ofrecer una descripción de cómo un conjunto de lenguas romances (español
+                            e italiano) y germánicas (alemán y neerlandés) codifican diez esquemas de movimiento causado
+                            específicos: METER, QUITAR, LANZAR, PONER, MOVER, LLEVAR, TRAER, DEJAR, SACAR Y ENVIAR,
+                            prestando especial atención a eventos complejos que admiten lecturas no prototípicas.</p>
+                        <p>El objetivo consiste en mapear las restricciones de combinación del movimiento, incluyendo el
+                            causado, que rigen
+                            cada tipología y documentar cómo se manifiesta la variación intratipológica en la producción
+                            lingüística real.</p>
+                    </div>
+                </div>
+                <div class="column-image">
+                    <div class="split-image-shade"></div>
+                    <img src="Images/Diapo 6.png" alt="Diapositiva 6" class="split-image">
+                </div>
+            </div>
+        </div>
+
+        <!-- Diapositiva 7 -->
+        <div class="slide full-bleed">
+            <div class="split-layout">
+                <div class="column-image"
+                    style="flex: 0.85; display: grid; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(5, 1fr); gap: 10px; padding: 1.5rem 1.2rem; box-sizing: border-box; overflow: hidden; background: rgba(18, 25, 33, 0.4);">
+                    <div class="split-image-shade" style="z-index: 0;"></div>
+                    <div class="collage-item"
+                        style="position: relative; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.12); z-index: 1;">
+                        <img src="Images/Imágenes/Meter en boca.png" alt="METER" class="zoomable-image"
+                            onclick="openLightbox(this.src)"
+                            style="width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.3s ease;">
+                        <span
+                            style="position: absolute; bottom: 5px; left: 6px; background: rgba(17, 24, 39, 0.8); backdrop-filter: blur(6px); color: var(--secondary-color); font-size: 0.72rem; font-weight: 700; padding: 2px 7px; border-radius: 5px; pointer-events: none; border: 1px solid rgba(243, 156, 18, 0.3); letter-spacing: 0.5px;">METER</span>
+                    </div>
+                    <div class="collage-item"
+                        style="position: relative; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.12); z-index: 1;">
+                        <img src="Images/Imágenes/Quitar de la mesa.png" alt="QUITAR" class="zoomable-image"
+                            onclick="openLightbox(this.src)"
+                            style="width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.3s ease;">
+                        <span
+                            style="position: absolute; bottom: 5px; left: 6px; background: rgba(17, 24, 39, 0.8); backdrop-filter: blur(6px); color: var(--secondary-color); font-size: 0.72rem; font-weight: 700; padding: 2px 7px; border-radius: 5px; pointer-events: none; border: 1px solid rgba(243, 156, 18, 0.3); letter-spacing: 0.5px;">QUITAR</span>
+                    </div>
+                    <div class="collage-item"
+                        style="position: relative; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.12); z-index: 1;">
+                        <img src="Images/Imágenes/LAnzar botella al cesto.png" alt="LANZAR" class="zoomable-image"
+                            onclick="openLightbox(this.src)"
+                            style="width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.3s ease;">
+                        <span
+                            style="position: absolute; bottom: 5px; left: 6px; background: rgba(17, 24, 39, 0.8); backdrop-filter: blur(6px); color: var(--secondary-color); font-size: 0.72rem; font-weight: 700; padding: 2px 7px; border-radius: 5px; pointer-events: none; border: 1px solid rgba(243, 156, 18, 0.3); letter-spacing: 0.5px;">LANZAR</span>
+                    </div>
+                    <div class="collage-item"
+                        style="position: relative; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.12); z-index: 1;">
+                        <img src="Images/Imágenes/Poner en el suelo.png" alt="PONER" class="zoomable-image"
+                            onclick="openLightbox(this.src)"
+                            style="width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.3s ease;">
+                        <span
+                            style="position: absolute; bottom: 5px; left: 6px; background: rgba(17, 24, 39, 0.8); backdrop-filter: blur(6px); color: var(--secondary-color); font-size: 0.72rem; font-weight: 700; padding: 2px 7px; border-radius: 5px; pointer-events: none; border: 1px solid rgba(243, 156, 18, 0.3); letter-spacing: 0.5px;">PONER</span>
+                    </div>
+                    <div class="collage-item"
+                        style="position: relative; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.12); z-index: 1;">
+                        <img src="Images/Imágenes/Mover hacia alla.png" alt="MOVER" class="zoomable-image"
+                            onclick="openLightbox(this.src)"
+                            style="width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.3s ease;">
+                        <span
+                            style="position: absolute; bottom: 5px; left: 6px; background: rgba(17, 24, 39, 0.8); backdrop-filter: blur(6px); color: var(--secondary-color); font-size: 0.72rem; font-weight: 700; padding: 2px 7px; border-radius: 5px; pointer-events: none; border: 1px solid rgba(243, 156, 18, 0.3); letter-spacing: 0.5px;">MOVER</span>
+                    </div>
+                    <div class="collage-item"
+                        style="position: relative; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.12); z-index: 1;">
+                        <img src="Images/Imágenes/LLevar al taller.png" alt="LLEVAR" class="zoomable-image"
+                            onclick="openLightbox(this.src)"
+                            style="width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.3s ease;">
+                        <span
+                            style="position: absolute; bottom: 5px; left: 6px; background: rgba(17, 24, 39, 0.8); backdrop-filter: blur(6px); color: var(--secondary-color); font-size: 0.72rem; font-weight: 700; padding: 2px 7px; border-radius: 5px; pointer-events: none; border: 1px solid rgba(243, 156, 18, 0.3); letter-spacing: 0.5px;">LLEVAR</span>
+                    </div>
+                    <div class="collage-item"
+                        style="position: relative; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.12); z-index: 1;">
+                        <img src="Images/Imágenes/Traer flores.png" alt="TRAER" class="zoomable-image"
+                            onclick="openLightbox(this.src)"
+                            style="width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.3s ease;">
+                        <span
+                            style="position: absolute; bottom: 5px; left: 6px; background: rgba(17, 24, 39, 0.8); backdrop-filter: blur(6px); color: var(--secondary-color); font-size: 0.72rem; font-weight: 700; padding: 2px 7px; border-radius: 5px; pointer-events: none; border: 1px solid rgba(243, 156, 18, 0.3); letter-spacing: 0.5px;">TRAER</span>
+                    </div>
+                    <div class="collage-item"
+                        style="position: relative; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.12); z-index: 1;">
+                        <img src="Images/Imágenes/Dejar mochila.png" alt="DEJAR" class="zoomable-image"
+                            onclick="openLightbox(this.src)"
+                            style="width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.3s ease;">
+                        <span
+                            style="position: absolute; bottom: 5px; left: 6px; background: rgba(17, 24, 39, 0.8); backdrop-filter: blur(6px); color: var(--secondary-color); font-size: 0.72rem; font-weight: 700; padding: 2px 7px; border-radius: 5px; pointer-events: none; border: 1px solid rgba(243, 156, 18, 0.3); letter-spacing: 0.5px;">DEJAR</span>
+                    </div>
+                    <div class="collage-item"
+                        style="position: relative; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.12); z-index: 1;">
+                        <img src="Images/Imágenes/Sacar conejo.png" alt="SACAR" class="zoomable-image"
+                            onclick="openLightbox(this.src)"
+                            style="width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.3s ease;">
+                        <span
+                            style="position: absolute; bottom: 5px; left: 6px; background: rgba(17, 24, 39, 0.8); backdrop-filter: blur(6px); color: var(--secondary-color); font-size: 0.72rem; font-weight: 700; padding: 2px 7px; border-radius: 5px; pointer-events: none; border: 1px solid rgba(243, 156, 18, 0.3); letter-spacing: 0.5px;">SACAR</span>
+                    </div>
+                    <div class="collage-item"
+                        style="position: relative; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.12); z-index: 1;">
+                        <img src="Images/Imágenes/Enviar paquete.png" alt="ENVIAR" class="zoomable-image"
+                            onclick="openLightbox(this.src)"
+                            style="width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.3s ease;">
+                        <span
+                            style="position: absolute; bottom: 5px; left: 6px; background: rgba(17, 24, 39, 0.8); backdrop-filter: blur(6px); color: var(--secondary-color); font-size: 0.72rem; font-weight: 700; padding: 2px 7px; border-radius: 5px; pointer-events: none; border: 1px solid rgba(243, 156, 18, 0.3); letter-spacing: 0.5px;">ENVIAR</span>
+                    </div>
+                </div>
+                <div class="column-text" style="flex: 1.15;">
+                    <div class="content-card" style="padding: 0; width: 100%; max-width: none;">
+                        <h2>Metodología</h2>
+                        <p>Se realizaron videoclips representando cada uno de los diez esquemas prototípicos de interés
+                            a grupos de
+                            cinco hablantes nativos por lengua.</p>
+                        <p>Las situaciones manipularon sistemáticamente las trayectorias espaciales (movimiento hacia
+                            dentro, hacia fuera y a través de espacios delimitados) y la causación, con el fin de
+                            activar deliberadamente restricciones complejas de cruce de frontera.</p>
+                        <p>Los hablantes nativos de cada lengua describieron cada video bajo dos condiciones:</p>
+                        <ul
+                            style="font-size: 1.25rem; font-weight: 300; line-height: 1.6; margin-bottom: 1.5rem; padding-left: 1.5rem; color: var(--text-muted); list-style-type: none;">
+                            <li style="margin-bottom: 0.5rem;"><strong>(a) descripción espontánea</strong>, para
+                                capturar patrones convencionales de lexicalización;</li>
+                        <li style="margin-bottom: 0.5rem;"><strong>(b) descripción detallada</strong>, exigiendo
+                                captar todo matiz semántico de manera, trayectoria y estado resultante.</li>
+                        </ul>
+                        <p>En ambas descripciones, se analizó el uso y la frecuencia de los verbos de movimiento, las
+                            preposiciones, los satélites y las partículas, así como las opciones morfosintácticas
+                            alternativas en las lenguas V-framed y S-framed.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Diapositiva 8: Inventario de elementos lingüísticos -->
+        <div class="slide full-bleed"
+            style="padding: 2rem 3rem; overflow-y: auto; justify-content: flex-start; align-items: center;">
+            <div class="content-card"
+                style="padding: 0; width: 100%; max-width: 1400px; box-sizing: border-box; margin: 0 auto;">
+                <h2
+                    style="margin-top: 0; font-size: 2.2rem; margin-bottom: 0.8rem; color: var(--secondary-color); border-bottom: 2px solid var(--glass-border); padding-bottom: 0.4rem;">
+                    Resultados y discusión: Inventario de elementos lingüísticos</h2>
+                <p
+                    style="margin-bottom: 1rem; font-size: 1rem; line-height: 1.4; color: var(--text-muted); max-width: none;">
+                    A continuación, se presenta un inventario detallado de los elementos léxicos y gramaticales
+                    extraídos de las descripciones de los corpus de cada una de
+                    las cuatro lenguas analizadas.
+                </p>
+
+                <!-- Cuadrícula de 2x2 tablas (2 arriba, 2 abajo) -->
+                <div
+                    style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; align-items: start; width: 100%;">
+
+                    <!-- Cuadro 1: Alemán (Arriba Izquierda) -->
+                    <div
+                        style="border: 1px solid #d1d5db; border-radius: 8px; overflow: hidden; background: #ffffff; color: #1f2937; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+                        <div
+                            style="background-color: #f3f4f6; color: #111827; padding: 6px 10px; font-weight: bold; border-bottom: 1px solid #d1d5db; font-size: 0.92rem; text-align: center;">
+                            Alemán (S-framed)
+                        </div>
+                        <table
+                            style="width: 100%; border-collapse: collapse; font-size: 0.76rem; line-height: 1.3; color: #1f2937;">
+                            <tbody>
+                                <tr style="border-bottom: 1px solid #e5e7eb;">
+                                    <td style="padding: 4px 8px; vertical-align: top; width: 75px; color: #111827;">
+                                        <strong>PONER:</strong>
+                                    </td>
+                                    <td style="padding: 4px 8px; vertical-align: top;">Verbos: <em>aufhängen</em> (1),
+                                        <em>anbringen</em> (1), <em>hängen</em> (2), <em>befestigen</em> (1);
+                                        Preposiciones: <em>an</em> (4); Satélites/Partículas: <em>auf</em> (1),
+                                        <em>an</em> (1)
+                                    </td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #e5e7eb; background-color: #fafafa;">
+                                    <td style="padding: 4px 8px; vertical-align: top; color: #111827;">
+                                        <strong>METER:</strong>
+                                    </td>
+                                    <td style="padding: 4px 8px; vertical-align: top;">Verbos: <em>stecken</em> (3),
+                                        <em>einführen</em> (1), <em>tauchen</em> (1); Preposiciones: <em>in</em> (5);
+                                        Satélites/Partículas: <em>ein</em> (1)
+                                    </td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #e5e7eb;">
+                                    <td style="padding: 4px 8px; vertical-align: top; color: #111827;">
+                                        <strong>QUITAR:</strong>
+                                    </td>
+                                    <td style="padding: 4px 8px; vertical-align: top;">Verbos: <em>ziehen</em> (2),
+                                        <em>entfernen</em> (1), <em>wegnehmen</em> (1), <em>abheben</em> (1);
+                                        Preposiciones: <em>von</em> (4); Satélites/Partículas: <em>weg</em> (1),
+                                        <em>ab</em> (1), <em>herunter</em> (1)
+                                    </td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #e5e7eb; background-color: #fafafa;">
+                                    <td style="padding: 4px 8px; vertical-align: top; color: #111827;">
+                                        <strong>LANZAR:</strong>
+                                    </td>
+                                    <td style="padding: 4px 8px; vertical-align: top;">Verbos: <em>werfen</em> (3),
+                                        <em>wegwerfen</em> (1), <em>schleudern</em> (1); Preposiciones: <em>in</em> (2),
+                                        <em>in Richtung</em> (1), <em>Richtung</em> (1); Satélites/Partículas:
+                                        <em>weg</em> (1)
+                                    </td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #e5e7eb;">
+                                    <td style="padding: 4px 8px; vertical-align: top; color: #111827;">
+                                        <strong>MOVER:</strong>
+                                    </td>
+                                    <td style="padding: 4px 8px; vertical-align: top;">Verbos: <em>tragen</em> (3),
+                                        <em>hieven</em> (1), <em>bewegen</em> (1); Preposiciones: <em>durch</em> (3),
+                                        <em>in</em> (1)
+                                    </td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #e5e7eb; background-color: #fafafa;">
+                                    <td style="padding: 4px 8px; vertical-align: top; color: #111827;">
+                                        <strong>LLEVAR:</strong>
+                                    </td>
+                                    <td style="padding: 4px 8px; vertical-align: top;">Verbos: <em>bringen</em> (4),
+                                        <em>lenken</em> (1); Preposiciones: <em>in</em> (3), <em>zu</em> (2)
+                                    </td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #e5e7eb;">
+                                    <td style="padding: 4px 8px; vertical-align: top; color: #111827;">
+                                        <strong>TRAER:</strong>
+                                    </td>
+                                    <td style="padding: 4px 8px; vertical-align: top;">Verbos: <em>mitbringen</em> (1),
+                                        <em>überreichen</em> (1), <em>bringen</em> (2), <em>überbringen</em> (1);
+                                        Preposiciones: <em>in</em> (2), <em>an</em> (1); Satélites/Partículas:
+                                        <em>mit</em> (1)
+                                    </td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #e5e7eb; background-color: #fafafa;">
+                                    <td style="padding: 4px 8px; vertical-align: top; color: #111827;">
+                                        <strong>DEJAR:</strong>
+                                    </td>
+                                    <td style="padding: 4px 8px; vertical-align: top;">Verbos: <em>lassen fallen</em>
+                                        (1), <em>ablegen</em> (1), <em>abstellen</em> (1), <em>deponieren</em> (1),
+                                        <em>legen</em> (1); Preposiciones: <em>auf</em> (4); Satélites/Partículas:
+                                        <em>ab</em> (2)
+                                    </td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #e5e7eb;">
+                                    <td style="padding: 4px 8px; vertical-align: top; color: #111827;">
+                                        <strong>SACAR:</strong>
+                                    </td>
+                                    <td style="padding: 4px 8px; vertical-align: top;">Verbos: <em>ziehen</em> (1),
+                                        <em>hervorholen</em> (1), <em>zaubern</em> (1), <em>fördern</em> (1),
+                                        <em>holen</em> (1); Preposiciones: <em>aus</em> (5); Satélites/Partículas:
+                                        <em>hervor</em> (1), <em>zutage</em> (1)
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 4px 8px; vertical-align: top; color: #111827;">
+                                        <strong>ENVIAR:</strong>
+                                    </td>
+                                    <td style="padding: 4px 8px; vertical-align: top;">Verbos: <em>verschicken</em> (1),
+                                        <em>entgegennehmen</em> (2), <em>schicken</em> (1), <em>beginnen</em> (1);
+                                        Preposiciones: <em>in</em> (1), <em>nach</em> (1), <em>von...nach</em> (1);
+                                        Satélites/Partículas: <em>entgegen</em> (2)
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Cuadro 2: Neerlandés (Arriba Derecha) -->
+                    <div
+                        style="border: 1px solid #d1d5db; border-radius: 8px; overflow: hidden; background: #ffffff; color: #1f2937; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+                        <div
+                            style="background-color: #f3f4f6; color: #111827; padding: 6px 10px; font-weight: bold; border-bottom: 1px solid #d1d5db; font-size: 0.92rem; text-align: center;">
+                            Neerlandés (S-framed)
+                        </div>
+                        <table
+                            style="width: 100%; border-collapse: collapse; font-size: 0.76rem; line-height: 1.3; color: #1f2937;">
+                            <tbody>
+                                <tr style="border-bottom: 1px solid #e5e7eb;">
+                                    <td style="padding: 4px 8px; vertical-align: top; width: 75px; color: #111827;">
+                                        <strong>PONER:</strong>
+                                    </td>
+                                    <td style="padding: 4px 8px; vertical-align: top;">Verbos: <em>ophangen</em> (3),
+                                        <em>bevestigen</em> (2); Preposiciones: <em>aan</em> (3), <em>in</em> (1);
+                                        Satélites/Partículas: <em>op</em> (3)
+                                    </td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #e5e7eb; background-color: #fafafa;">
+                                    <td style="padding: 4px 8px; vertical-align: top; color: #111827;">
+                                        <strong>METER:</strong>
+                                    </td>
+                                    <td style="padding: 4px 8px; vertical-align: top;">Verbos: <em>steken</em> (1),
+                                        <em>stoppen</em> (1), <em>plaatsen</em> (1), <em>duwen</em> (1),
+                                        <em>glijden</em> (1); Preposiciones: <em>in</em> (5)
+                                    </td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #e5e7eb;">
+                                    <td style="padding: 4px 8px; vertical-align: top; color: #111827;">
+                                        <strong>QUITAR:</strong>
+                                    </td>
+                                    <td style="padding: 4px 8px; vertical-align: top;">Verbos: <em>halen</em> (1),
+                                        <em>aftrekken</em> (1), <em>verwijderen</em> (1), <em>wegtrekken</em> (1),
+                                        <em>ontdoen</em> (1); Preposiciones: <em>van</em> (5); Satélites/Partículas:
+                                        <em>af</em> (1), <em>weg</em> (1)
+                                    </td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #e5e7eb; background-color: #fafafa;">
+                                    <td style="padding: 4px 8px; vertical-align: top; color: #111827;">
+                                        <strong>LANZAR:</strong>
+                                    </td>
+                                    <td style="padding: 4px 8px; vertical-align: top;">Verbos: <em>gooien</em> (1),
+                                        <em>smijten</em> (1), <em>werpen</em> (1), <em>weggooien</em> (1),
+                                        <em>mikken</em> (1); Preposiciones: <em>in</em> (3), <em>richting</em> (1);
+                                        Satélites/Partículas: <em>weg</em> (1)
+                                    </td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #e5e7eb;">
+                                    <td style="padding: 4px 8px; vertical-align: top; color: #111827;">
+                                        <strong>MOVER:</strong>
+                                    </td>
+                                    <td style="padding: 4px 8px; vertical-align: top;">Verbos: <em>verplaatsen</em> (2),
+                                        <em>sjouwen</em> (1), <em>dragen</em> (1), <em>sleuren</em> (1); Preposiciones:
+                                        <em>naar</em> (3); Satélites/Partículas: <em>heen</em> (1)
+                                    </td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #e5e7eb; background-color: #fafafa;">
+                                    <td style="padding: 4px 8px; vertical-align: top; color: #111827;">
+                                        <strong>LLEVAR:</strong>
+                                    </td>
+                                    <td style="padding: 4px 8px; vertical-align: top;">Verbos: <em>bringen</em> (2),
+                                        <em>inrijden</em> (1), <em>binnenvoeren</em> (1), <em>binnenrijden</em> (1);
+                                        Preposiciones: <em>naar</em> (2); Satélites/Partículas: <em>in</em> (1),
+                                        <em>binnen</em> (2)
+                                    </td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #e5e7eb;">
+                                    <td style="padding: 4px 8px; vertical-align: top; color: #111827;">
+                                        <strong>TRAER:</strong>
+                                    </td>
+                                    <td style="padding: 4px 8px; vertical-align: top;">Verbos: <em>bringen</em> (1),
+                                        <em>binnenkomen</em> (1), <em>overhandigen</em> (1), <em>meebrengen</em> (1),
+                                        <em>aanbieden</em> (1); Preposiciones: <em>naar</em> (1), <em>voor</em> (1),
+                                        <em>aan</em> (1), <em>in</em> (1), <em>bij</em> (1); Satélites/Partículas:
+                                        <em>binnen</em> (1), <em>mee</em> (1), <em>aan</em> (1)
+                                    </td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #e5e7eb; background-color: #fafafa;">
+                                    <td style="padding: 4px 8px; vertical-align: top; color: #111827;">
+                                        <strong>DEJAR:</strong>
+                                    </td>
+                                    <td style="padding: 4px 8px; vertical-align: top;">Verbos: <em>legen</em> (1),
+                                        <em>neerzetten</em> (1), <em>droppen</em> (1), <em>deponieren</em> (1),
+                                        <em>laten vallen</em> (1); Preposiciones: <em>op</em> (5); Satélites/Partículas:
+                                        <em>neer</em> (1)
+                                    </td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #e5e7eb;">
+                                    <td style="padding: 4px 8px; vertical-align: top; color: #111827;">
+                                        <strong>SACAR:</strong>
+                                    </td>
+                                    <td style="padding: 4px 8px; vertical-align: top;">Verbos: <em>ziehen</em> (1),
+                                        <em>hervorholen</em> (1), <em>zaubern</em> (1), <em>fördern</em> (1),
+                                        <em>holen</em> (1); Preposiciones: <em>aus</em> (5); Satélites/Partículas:
+                                        <em>hervor</em> (1), <em>zutage</em> (1)
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 4px 8px; vertical-align: top; color: #111827;">
+                                        <strong>ENVIAR:</strong>
+                                    </td>
+                                    <td style="padding: 4px 8px; vertical-align: top;">Verbos: <em>verschicken</em> (1),
+                                        <em>entgegennehmen</em> (2), <em>schicken</em> (1), <em>beginnen</em> (1);
+                                        Preposiciones: <em>in</em> (1), <em>nach</em> (1), <em>von...nach</em> (1);
+                                        Satélites/Partículas: <em>entgegen</em> (2)
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Cuadro 3: Español (Abajo Izquierda) -->
+                    <div
+                        style="border: 1px solid #d1d5db; border-radius: 8px; overflow: hidden; background: #ffffff; color: #1f2937; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+                        <div
+                            style="background-color: #f3f4f6; color: #111827; padding: 6px 10px; font-weight: bold; border-bottom: 1px solid #d1d5db; font-size: 0.92rem; text-align: center;">
+                            Español (V-framed)
+                        </div>
+                        <table
+                            style="width: 100%; border-collapse: collapse; font-size: 0.76rem; line-height: 1.3; color: #1f2937;">
+                            <tbody>
+                                <tr style="border-bottom: 1px solid #e5e7eb;">
+                                    <td style="padding: 4px 8px; vertical-align: top; width: 75px; color: #111827;">
+                                        <strong>PONER:</strong>
+                                    </td>
+                                    <td style="padding: 4px 8px; vertical-align: top;">Verbos: <em>colocar</em> (2),
+                                        <em>poner</em> (1), <em>colgar</em> (1), <em>acomodar</em> (1); Preposiciones:
+                                        <em>en</em> (5)
+                                    </td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #e5e7eb; background-color: #fafafa;">
+                                    <td style="padding: 4px 8px; vertical-align: top; color: #111827;">
+                                        <strong>METER:</strong>
+                                    </td>
+                                    <td style="padding: 4px 8px; vertical-align: top;">Verbos: <em>meter</em> (2),
+                                        <em>introducir</em> (2), <em>poner</em> (1); Preposiciones: <em>en</em> (3),
+                                        <em>dentro de</em> (2)
+                                    </td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #e5e7eb;">
+                                    <td style="padding: 4px 8px; vertical-align: top; color: #111827;">
+                                        <strong>QUITAR:</strong>
+                                    </td>
+                                    <td style="padding: 4px 8px; vertical-align: top;">Verbos: <em>quitar</em> (2),
+                                        <em>retirar</em> (2), <em>sacar</em> (1); Preposiciones: <em>de</em> (3),
+                                        <em>sobre</em> (1)
+                                    </td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #e5e7eb; background-color: #fafafa;">
+                                    <td style="padding: 4px 8px; vertical-align: top; color: #111827;">
+                                        <strong>LANZAR:</strong>
+                                    </td>
+                                    <td style="padding: 4px 8px; vertical-align: top;">Verbos: <em>lanzar</em> (2),
+                                        <em>tirar</em> (1), <em>arrojar</em> (2); Preposiciones: <em>hacia</em> (2),
+                                        <em>a</em> (3)
+                                    </td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #e5e7eb;">
+                                    <td style="padding: 4px 8px; vertical-align: top; color: #111827;">
+                                        <strong>MOVER:</strong>
+                                    </td>
+                                    <td style="padding: 4px 8px; vertical-align: top;">Verbos: <em>mover</em> (2),
+                                        <em>trasladar</em> (1), <em>cambiar</em> (1), <em>desplazar</em> (1);
+                                        Preposiciones: <em>por</em> (1), <em>de</em> (1), <em>hacia</em> (1)
+                                    </td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #e5e7eb; background-color: #fafafa;">
+                                    <td style="padding: 4px 8px; vertical-align: top; color: #111827;">
+                                        <strong>LLEVAR:</strong>
+                                    </td>
+                                    <td style="padding: 4px 8px; vertical-align: top;">Verbos: <em>llevar</em> (4),
+                                        <em>meter</em> (1); Preposiciones: <em>a</em> (4), <em>dentro de</em> (1)
+                                    </td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #e5e7eb;">
+                                    <td style="padding: 4px 8px; vertical-align: top; color: #111827;">
+                                        <strong>TRAER:</strong>
+                                    </td>
+                                    <td style="padding: 4px 8px; vertical-align: top;">Verbos: <em>traer</em> (3),
+                                        <em>llevar</em> (1), <em>acercar</em> (1); Preposiciones: <em>para</em> (2),
+                                        <em>a</em> (2)
+                                    </td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #e5e7eb; background-color: #fafafa;">
+                                    <td style="padding: 4px 8px; vertical-align: top; color: #111827;">
+                                        <strong>DEJAR:</strong>
+                                    </td>
+                                    <td style="padding: 4px 8px; vertical-align: top;">Verbos: <em>dejar</em> (3),
+                                        <em>poner</em> (1), <em>colocar</em> (1); Preposiciones: <em>sobre</em> (2),
+                                        <em>en</em> (2), <em>encima de</em> (1)
+                                    </td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #e5e7eb;">
+                                    <td style="padding: 4px 8px; vertical-align: top; color: #111827;">
+                                        <strong>SACAR:</strong>
+                                    </td>
+                                    <td style="padding: 4px 8px; vertical-align: top;">Verbos: <em>sacar</em> (4),
+                                        <em>extraer</em> (1); Preposiciones: <em>de</em> (4), <em>dentro de</em> (1)
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 4px 8px; vertical-align: top; color: #111827;">
+                                        <strong>ENVIAR:</strong>
+                                    </td>
+                                    <td style="padding: 4px 8px; vertical-align: top;">Verbos: <em>enviar</em> (2),
+                                        <em>mandar</em> (1), <em>entregar</em> (1), <em>pasar</em> (1); Preposiciones:
+                                        <em>por</em> (1), <em>de...a</em> (1), <em>para</em> (1), <em>a</em> (2)
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Cuadro 4: Italiano (Abajo Derecha) -->
+                    <div
+                        style="border: 1px solid #d1d5db; border-radius: 8px; overflow: hidden; background: #ffffff; color: #1f2937; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+                        <div
+                            style="background-color: #f3f4f6; color: #111827; padding: 6px 10px; font-weight: bold; border-bottom: 1px solid #d1d5db; font-size: 0.92rem; text-align: center;">
+                            Italiano (V-framed)
+                        </div>
+                        <table
+                            style="width: 100%; border-collapse: collapse; font-size: 0.76rem; line-height: 1.3; color: #1f2937;">
+                            <tbody>
+                                <tr style="border-bottom: 1px solid #e5e7eb;">
+                                    <td style="padding: 4px 8px; vertical-align: top; width: 75px; color: #111827;">
+                                        <strong>PONER:</strong>
+                                    </td>
+                                    <td style="padding: 4px 8px; vertical-align: top;">Verbos: <em>appendere</em> (2),
+                                        <em>mettere</em> (2), <em>fissare</em> (1); Preposiciones: <em>a</em> (4),
+                                        <em>su</em> (1)
+                                    </td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #e5e7eb; background-color: #fafafa;">
+                                    <td style="padding: 4px 8px; vertical-align: top; color: #111827;">
+                                        <strong>METER:</strong>
+                                    </td>
+                                    <td style="padding: 4px 8px; vertical-align: top;">Verbos: <em>infila</em> (1),
+                                        <em>mettere</em> (1), <em>introdurre</em> (1), <em>cacciare</em> (1),
+                                        <em>ficcare</em> (1); Preposiciones: <em>in</em> (4), <em>dentro</em> (1)
+                                    </td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #e5e7eb;">
+                                    <td style="padding: 4px 8px; vertical-align: top; color: #111827;">
+                                        <strong>QUITAR:</strong>
+                                    </td>
+                                    <td style="padding: 4px 8px; vertical-align: top;">Verbos: <em>togliere</em> (1),
+                                        <em>rimuovere</em> (1), <em>sfilare</em> (1), <em>levare</em> (1),
+                                        <em>strappare</em> (1); Preposiciones: <em>da</em> (4); Satélites/Partículas:
+                                        <em>via</em> (1)
+                                    </td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #e5e7eb; background-color: #fafafa;">
+                                    <td style="padding: 4px 8px; vertical-align: top; color: #111827;">
+                                        <strong>LANZAR:</strong>
+                                    </td>
+                                    <td style="padding: 4px 8px; vertical-align: top;">Verbos: <em>lanciare</em> (1),
+                                        <em>gettare</em> (1), <em>scagliare</em> (1), <em>buttare</em> (1),
+                                        <em>tirare</em> (1); Preposiciones: <em>in</em> (3), <em>verso</em> (2)
+                                    </td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #e5e7eb;">
+                                    <td style="padding: 4px 8px; vertical-align: top; color: #111827;">
+                                        <strong>MOVER:</strong>
+                                    </td>
+                                    <td style="padding: 4px 8px; vertical-align: top;">Verbos: <em>spostare</em> (2),
+                                        <em>muovere</em> (1), <em>trasportare</em> (1), <em>traslocare</em> (1);
+                                        Preposiciones: <em>in</em> (2), <em>da...a</em> (1)
+                                    </td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #e5e7eb; background-color: #fafafa;">
+                                    <td style="padding: 4px 8px; vertical-align: top; color: #111827;">
+                                        <strong>LLEVAR:</strong>
+                                    </td>
+                                    <td style="padding: 4px 8px; vertical-align: top;">Verbos: <em>portare</em> (2),
+                                        <em>condurre</em> (1), <em>accompagnare</em> (1), <em>trainare</em> (1);
+                                        Preposiciones: <em>in</em> (3), <em>a</em> (1), <em>verso</em> (1)
+                                    </td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #e5e7eb;">
+                                    <td style="padding: 4px 8px; vertical-align: top; color: #111827;">
+                                        <strong>TRAER:</strong>
+                                    </td>
+                                    <td style="padding: 4px 8px; vertical-align: top;">Verbos: <em>portare</em> (2),
+                                        <em>arrivare</em> (1), <em>recare</em> (1), <em>consegnare</em> (1);
+                                        Preposiciones: <em>a</em> (4), <em>con</em> (1)
+                                    </td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #e5e7eb; background-color: #fafafa;">
+                                    <td style="padding: 4px 8px; vertical-align: top; color: #111827;">
+                                        <strong>DEJAR:</strong>
+                                    </td>
+                                    <td style="padding: 4px 8px; vertical-align: top;">Verbos: <em>lasciare</em> (1),
+                                        <em>poggiare</em> (1), <em>depositare</em> (1), <em>mollare</em> (1),
+                                        <em>lasciare cadere</em> (1); Preposiciones: <em>su</em> (4), <em>sopra</em> (1)
+                                    </td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #e5e7eb;">
+                                    <td style="padding: 4px 8px; vertical-align: top; color: #111827;">
+                                        <strong>SACAR:</strong>
+                                    </td>
+                                    <td style="padding: 4px 8px; vertical-align: top;">Verbos: <em>tirare</em> (1),
+                                        <em>estrarre</em> (1), <em>cavare</em> (1), <em>fare uscire</em> (1), <em>fare
+                                            comparire</em> (1); Preposiciones: <em>da</em> (5); Satélites/Partículas:
+                                        <em>fuori</em> (1)
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 4px 8px; vertical-align: top; color: #111827;">
+                                        <strong>ENVIAR:</strong>
+                                    </td>
+                                    <td style="padding: 4px 8px; vertical-align: top;">Verbos: <em>spedire</em> (2),
+                                        <em>mandare</em> (1), <em>fare partire</em> (1), <em>inoltre</em> (1);
+                                        Preposiciones: <em>a</em> (3), <em>per</em> (1)
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Diapositiva 9 -->
+        <div class="slide full-bleed" id="slide-9"
+            style="padding: 2.5rem 4rem; overflow-y: auto; justify-content: center; align-items: center;">
+            <div class="content-card"
+                style="padding: 0; width: 100%; max-width: 1200px; box-sizing: border-box; margin: 0 auto;">
+                <h2
+                    style="margin-top: 0; font-size: 2.2rem; margin-bottom: 0.8rem; color: var(--secondary-color); border-bottom: 2px solid var(--glass-border); padding-bottom: 0.4rem;">
+                    Resultados y discusión: Frecuencias del tipo de léxico verbal principal</h2>
+
+                <p
+                    style="margin-bottom: 1rem; font-size: 1.1rem; line-height: 1.6; color: var(--text-muted); max-width: none;">
+                    Para cuantificar el comportamiento de los esquemas, se clasificaron todos los verbos principales de
+                    las 50 oraciones recolectadas por lengua (10 esquemas x 5 informantes) en tres categorías
+                    semánticas: Manera, Trayectoria y General/Causativo.
+                </p>
+
+                <p
+                    style="margin-bottom: 1.5rem; font-size: 1.1rem; line-height: 1.6; color: var(--text-muted); max-width: none;">
+                    El análisis revela una clara asimetría de marco, pero con un matiz muy interesante sobre la
+                    variación intratipológica, especialmente en la familia romance.
+                </p>
+
+                <div id="table-container-9"
+                    style="position: relative; border: 1px solid #d1d5db; border-radius: 8px; overflow: hidden; background: #ffffff; color: #1f2937; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+
+                    <!-- Capa SVG para la animación de la luz dorada -->
+                    <svg id="golden-svg-9"
+                        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10;">
+                        <defs>
+                            <filter id="gold-glow-filter" x="-50%" y="-50%" width="200%" height="200%">
+                                <feGaussianBlur stdDeviation="4" result="blur" />
+                                <feMerge>
+                                    <feMergeNode in="blur" />
+                                    <feMergeNode in="SourceGraphic" />
+                                </feMerge>
+                            </filter>
+                            <linearGradient id="gold-stroke-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#FFD700" />
+                                <stop offset="50%" stop-color="#FFF5B8" />
+                                <stop offset="100%" stop-color="#D35400" />
+                            </linearGradient>
+                        </defs>
+                        <!-- Trazo de la luz dorada -->
+                        <path id="golden-light-path" fill="none" stroke="url(#gold-stroke-grad)" stroke-width="4"
+                            stroke-linecap="round" stroke-linejoin="round" filter="url(#gold-glow-filter)" />
+                        <!-- Chispa/Luz viajera en el extremo -->
+                        <circle id="golden-spark" r="7" fill="#FFFFFF" filter="url(#gold-glow-filter)" opacity="0" />
+                    </svg>
+
+                    <table
+                        style="width: 100%; border-collapse: collapse; text-align: left; font-size: 1rem; line-height: 1.5; color: #1f2937;">
+                        <thead>
+                            <tr style="background-color: #f3f4f6; border-bottom: 1px solid #d1d5db;">
+                                <th
+                                    style="padding: 12px 16px; font-weight: 700; border-right: 1px solid #e5e7eb; color: #111827; text-align: left;">
+                                    Lengua</th>
+                                <th
+                                    style="padding: 12px 16px; font-weight: 700; border-right: 1px solid #e5e7eb; color: #111827; text-align: center;">
+                                    Verbos de manera</th>
+                                <th
+                                    style="padding: 12px 16px; font-weight: 700; border-right: 1px solid #e5e7eb; color: #111827; text-align: center;">
+                                    Verbos de trayectoria</th>
+                                <th
+                                    style="padding: 12px 16px; font-weight: 700; border-right: 1px solid #e5e7eb; color: #111827; text-align: center;">
+                                    Generales / Causativos</th>
+                                <th style="padding: 12px 16px; font-weight: 700; color: #111827; text-align: center;">
+                                    Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="border-bottom: 1px solid #e5e7eb;">
+                                <td
+                                    style="padding: 12px 16px; border-right: 1px solid #e5e7eb; font-weight: 600; color: #111827; text-align: left;">
+                                    Alemán</td>
+                                <td id="cell-b2"
+                                    style="padding: 12px 16px; border-right: 1px solid #e5e7eb; text-align: center;">28
+                                    (56.0%)</td>
+                                <td style="padding: 12px 16px; border-right: 1px solid #e5e7eb; text-align: center;">6
+                                    (12.0%)</td>
+                                <td style="padding: 12px 16px; border-right: 1px solid #e5e7eb; text-align: center;">16
+                                    (32.0%)</td>
+                                <td style="padding: 12px 16px; font-weight: 600; text-align: center;">50 (100%)</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #e5e7eb; background-color: #fafafa;">
+                                <td
+                                    style="padding: 12px 16px; border-right: 1px solid #e5e7eb; font-weight: 600; color: #111827; text-align: left;">
+                                    Neerlandés</td>
+                                <td id="cell-b3"
+                                    style="padding: 12px 16px; border-right: 1px solid #e5e7eb; text-align: center;">29
+                                    (58.0%)</td>
+                                <td style="padding: 12px 16px; border-right: 1px solid #e5e7eb; text-align: center;">6
+                                    (12.0%)</td>
+                                <td style="padding: 12px 16px; border-right: 1px solid #e5e7eb; text-align: center;">15
+                                    (30.0%)</td>
+                                <td style="padding: 12px 16px; font-weight: 600; text-align: center;">50 (100%)</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #e5e7eb;">
+                                <td
+                                    style="padding: 12px 16px; border-right: 1px solid #e5e7eb; font-weight: 600; color: #111827; text-align: left;">
+                                    Español</td>
+                                <td style="padding: 12px 16px; border-right: 1px solid #e5e7eb; text-align: center;">6
+                                    (12.0%)</td>
+                                <td id="cell-c4"
+                                    style="padding: 12px 16px; border-right: 1px solid #e5e7eb; text-align: center;">30
+                                    (60.0%)</td>
+                                <td style="padding: 12px 16px; border-right: 1px solid #e5e7eb; text-align: center;">14
+                                    (28.0%)</td>
+                                <td style="padding: 12px 16px; font-weight: 600; text-align: center;">50 (100%)</td>
+                            </tr>
+                            <tr style="background-color: #fafafa;">
+                                <td
+                                    style="padding: 12px 16px; border-right: 1px solid #e5e7eb; font-weight: 600; color: #111827; text-align: left;">
+                                    Italiano</td>
+                                <td style="padding: 12px 16px; border-right: 1px solid #e5e7eb; text-align: center;">12
+                                    (24.0%)</td>
+                                <td id="cell-c5"
+                                    style="padding: 12px 16px; border-right: 1px solid #e5e7eb; text-align: center;">22
+                                    (44.0%)</td>
+                                <td style="padding: 12px 16px; border-right: 1px solid #e5e7eb; text-align: center;">16
+                                    (32.0%)</td>
+                                <td style="padding: 12px 16px; font-weight: 600; text-align: center;">50 (100%)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Diapositiva 10: Principales combinaciones sintácticas -->
+        <div class="slide full-bleed"
+            style="padding: 2.5rem 4rem; overflow-y: auto; justify-content: center; align-items: center;">
+            <div class="content-card"
+                style="padding: 0; width: 100%; max-width: 1300px; box-sizing: border-box; margin: 0 auto;">
+                <h2
+                    style="margin-top: 0; font-size: 2.2rem; margin-bottom: 0.8rem; color: var(--secondary-color); border-bottom: 2px solid var(--glass-border); padding-bottom: 0.4rem;">
+                    Resultados y discusión: Principales combinaciones sintácticas por evento</h2>
+
+                <p
+                    style="margin-bottom: 0.8rem; font-size: 1.1rem; line-height: 1.6; color: var(--text-muted); max-width: none;">
+                    La estructura de las oraciones simples sigue patrones morfosintácticos muy definidos que se repiten
+                    con frecuencia.
+                </p>
+
+                <p
+                    style="margin-bottom: 0.8rem; font-size: 1.1rem; line-height: 1.6; color: var(--text-muted); max-width: none;">
+                    En las lenguas germánicas, la combinación prototípica consiste en un verbo de manera y un satélite
+                    que especifica la trayectoria, ocasionalmente acompañado de una preposición.
+                </p>
+
+                <p
+                    style="margin-bottom: 1.5rem; font-size: 1.1rem; line-height: 1.6; color: var(--text-muted); max-width: none;">
+                    En las lenguas romances, el patrón dominante es un verbo de trayectoria seguido de una preposición espacial (como '<em>en</em>' o '<em>a</em>').
+                </p>
+
+                <div
+                    style="position: relative; border: 1px solid #d1d5db; border-radius: 8px; overflow: hidden; background: #ffffff; color: #1f2937; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+                    <table
+                        style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.95rem; line-height: 1.5; color: #1f2937;">
+                        <thead>
+                            <tr style="background-color: #f3f4f6; border-bottom: 1px solid #d1d5db;">
+                                <th
+                                    style="padding: 12px 14px; font-weight: 700; border-right: 1px solid #e5e7eb; color: #111827; text-align: left; background-color: #f9fafb;">
+                                    Esquema</th>
+                                <th
+                                    style="padding: 12px 14px; font-weight: 700; border-right: 1px solid #e5e7eb; color: #111827; text-align: center;">
+                                    Alemán (S-framed)</th>
+                                <th
+                                    style="padding: 12px 14px; font-weight: 700; border-right: 1px solid #e5e7eb; color: #111827; text-align: center;">
+                                    Neerlandés (S-framed)</th>
+                                <th
+                                    style="padding: 12px 14px; font-weight: 700; border-right: 1px solid #e5e7eb; color: #111827; text-align: center;">
+                                    Español (V-framed)</th>
+                                <th style="padding: 12px 14px; font-weight: 700; color: #111827; text-align: center;">
+                                    Italiano (V-framed)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- PONER -->
+                            <tr style="border-bottom: 1px solid #e5e7eb;">
+                                <td
+                                    style="padding: 12px 14px; font-weight: 700; vertical-align: middle; border-right: 1px solid #e5e7eb; background-color: #f9fafb; color: #111827; text-align: left;">
+                                    PONER</td>
+                                <td
+                                    style="padding: 12px 14px; vertical-align: top; border-right: 1px solid #e5e7eb; text-align: center;">
+                                    <em>hängen</em> + '<em>an</em>' (40%)<br>
+                                    <em>aufhängen</em> + [<em>auf</em>] (20%)
+                                </td>
+                                <td
+                                    style="padding: 12px 14px; vertical-align: top; border-right: 1px solid #e5e7eb; text-align: center;">
+                                    <em>bevestigen</em> + '<em>aan</em>' (40%)<br>
+                                    <em>ophangen</em> + [<em>op</em>] + '<em>aan</em>' (20%)
+                                </td>
+                                <td
+                                    style="padding: 12px 14px; vertical-align: top; border-right: 1px solid #e5e7eb; text-align: center;">
+                                    <em>colocar</em> + '<em>en</em>' (40%)<br>
+                                    <em>poner</em> + '<em>en</em>' (20%)
+                                </td>
+                                <td style="padding: 12px 14px; vertical-align: top; text-align: center;">
+                                    <em>appendere</em> + '<em>a</em>' (40%)<br>
+                                    <em>mettere</em> + '<em>su/a</em>' (40%)
+                                </td>
+                            </tr>
+                            <!-- METER -->
+                            <tr style="border-bottom: 1px solid #e5e7eb; background-color: #fafafa;">
+                                <td
+                                    style="padding: 12px 14px; font-weight: 700; vertical-align: middle; border-right: 1px solid #e5e7eb; background-color: #f9fafb; color: #111827; text-align: left;">
+                                    METER</td>
+                                <td
+                                    style="padding: 12px 14px; vertical-align: top; border-right: 1px solid #e5e7eb; text-align: center;">
+                                    <em>stecken</em> + '<em>in</em>' (60%)
+                                </td>
+                                <td
+                                    style="padding: 12px 14px; vertical-align: top; border-right: 1px solid #e5e7eb; text-align: center;">
+                                    <em>steken</em> + '<em>in</em>' (20%)<br>
+                                    <em>stoppen</em> + '<em>in</em>' (20%)
+                                </td>
+                                <td
+                                    style="padding: 12px 14px; vertical-align: top; border-right: 1px solid #e5e7eb; text-align: center;">
+                                    <em>introducir</em> + '<em>en</em>' (40%)<br>
+                                    <em>meter</em> + '<em>en</em>' (20%)
+                                </td>
+                                <td style="padding: 12px 14px; vertical-align: top; text-align: center;">
+                                    <em>infilare/introdurre</em> + '<em>in</em>' (40%)<br>
+                                    <em>ficcare/cacciare</em> + '<em>in</em>' (40%)
+                                </td>
+                            </tr>
+                            <!-- QUITAR -->
+                            <tr style="border-bottom: 1px solid #e5e7eb;">
+                                <td
+                                    style="padding: 12px 14px; font-weight: 700; vertical-align: middle; border-right: 1px solid #e5e7eb; background-color: #f9fafb; color: #111827; text-align: left;">
+                                    QUITAR</td>
+                                <td
+                                    style="padding: 12px 14px; vertical-align: top; border-right: 1px solid #e5e7eb; text-align: center;">
+                                    <em>ziehen</em> + '<em>von</em>' (20%)<br>
+                                    <em>entfernen</em> + '<em>von</em>' (20%)
+                                </td>
+                                <td
+                                    style="padding: 12px 14px; vertical-align: top; border-right: 1px solid #e5e7eb; text-align: center;">
+                                    <em>aftrekken</em> + [<em>af</em>] + '<em>van</em>' (20%)<br>
+                                    <em>wegtrekken</em> + [<em>weg</em>] + '<em>van</em>' (20%)
+                                </td>
+                                <td
+                                    style="padding: 12px 14px; vertical-align: top; border-right: 1px solid #e5e7eb; text-align: center;">
+                                    <em>quitar</em> + '<em>de</em>' (40%)<br>
+                                    <em>retirar</em> + '<em>de</em>' (20%)
+                                </td>
+                                <td style="padding: 12px 14px; vertical-align: top; text-align: center;">
+                                    <em>togliere</em> + '<em>da</em>' (20%)<br>
+                                    <em>rimuovere</em> + '<em>da</em>' (20%)
+                                </td>
+                            </tr>
+                            <!-- SACAR -->
+                            <tr style="background-color: #fafafa;">
+                                <td
+                                    style="padding: 12px 14px; font-weight: 700; vertical-align: middle; border-right: 1px solid #e5e7eb; background-color: #f9fafb; color: #111827; text-align: left;">
+                                    SACAR</td>
+                                <td
+                                    style="padding: 12px 14px; vertical-align: top; border-right: 1px solid #e5e7eb; text-align: center;">
+                                    <em>ziehen/holen</em> + '<em>aus</em>' (40%)<br>
+                                    <em>hervorholen</em> + [<em>hervor</em>] (20%)
+                                </td>
+                                <td
+                                    style="padding: 12px 14px; vertical-align: top; border-right: 1px solid #e5e7eb; text-align: center;">
+                                    <em>toveren</em> + '<em>uit</em>' (40%)<br>
+                                    <em>tevoorschijn halen</em> (20%)
+                                </td>
+                                <td
+                                    style="padding: 12px 14px; vertical-align: top; border-right: 1px solid #e5e7eb; text-align: center;">
+                                    <em>sacar</em> + '<em>de</em>' (80%)<br>
+                                    <em>extraer</em> + '<em>de</em>' (20%)
+                                </td>
+                                <td style="padding: 12px 14px; vertical-align: top; text-align: center;">
+                                    <em>estrarre/cavare</em> + '<em>da</em>' (40%)<br>
+                                    <em>tirare</em> + [<em>fuori</em>] + '<em>da</em>' (20%)
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Diapositiva 11 -->
+        <div class="slide full-bleed"
+            style="padding: 2.5rem 4rem; overflow-y: auto; justify-content: center; align-items: center;">
+            <div class="content-card"
+                style="padding: 0; width: 100%; max-width: 1300px; box-sizing: border-box; margin: 0 auto;">
+                <h2
+                    style="margin-top: 0; font-size: 2.2rem; margin-bottom: 0.8rem; color: var(--secondary-color); border-bottom: 2px solid var(--glass-border); padding-bottom: 0.4rem;">
+                    Resultados y discusión: Análisis de la restricción de cruce de frontera</h2>
+
+                <p
+                    style="margin-bottom: 0.8rem; font-size: 1.1rem; line-height: 1.6; color: var(--text-muted); max-width: none;">
+                    Se identificó que este límite se cruza estrictamente en los esquemas de METER, SACAR y LLEVAR, y
+                    parcialmente en LANZAR.
+                </p>
+
+                <p
+                    style="margin-bottom: 1.5rem; font-size: 1.1rem; line-height: 1.6; color: var(--text-muted); max-width: none;">
+                    La siguiente tabla resume la aplicabilidad de la restricción, los verbos más comunes utilizados por
+                    lengua y cómo se estructura sintácticamente.
+                </p>
+
+                <div
+                    style="position: relative; border: 1px solid #d1d5db; border-radius: 8px; overflow: hidden; background: #ffffff; color: #1f2937; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+                    <table
+                        style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.95rem; line-height: 1.5; color: #1f2937;">
+                        <thead>
+                            <tr style="background-color: #f3f4f6; border-bottom: 1px solid #d1d5db;">
+                                <th
+                                    style="padding: 12px 14px; font-weight: 700; border-right: 1px solid #e5e7eb; color: #111827; text-align: left; background-color: #f9fafb;">
+                                    Lengua</th>
+                                <th
+                                    style="padding: 12px 14px; font-weight: 700; border-right: 1px solid #e5e7eb; color: #111827; text-align: center;">
+                                    Esquema con CF</th>
+                                <th
+                                    style="padding: 12px 14px; font-weight: 700; border-right: 1px solid #e5e7eb; color: #111827; text-align: center;">
+                                    Verbos principales (frecuencia absoluta)</th>
+                                <th
+                                    style="padding: 12px 14px; font-weight: 700; border-right: 1px solid #e5e7eb; color: #111827; text-align: center;">
+                                    Tipo dominante</th>
+                                <th style="padding: 12px 14px; font-weight: 700; color: #111827; text-align: center;">
+                                    ¿Permite verbo de manera + CF?</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Alemán -->
+                            <tr style="border-bottom: 1px solid #e5e7eb;">
+                                <td
+                                    style="padding: 12px 14px; font-weight: 700; vertical-align: top; border-right: 1px solid #e5e7eb; background-color: #f9fafb; color: #111827; text-align: left;">
+                                    Alemán</td>
+                                <td
+                                    style="padding: 12px 14px; vertical-align: top; border-right: 1px solid #e5e7eb; text-align: center;">
+                                    METER / SACAR / LLEVAR</td>
+                                <td
+                                    style="padding: 12px 14px; vertical-align: top; border-right: 1px solid #e5e7eb; text-align: center;">
+                                    <em>stecken</em> (3), <em>ziehen</em> (1)<br>
+                                    <em>bringen</em> (4), <em>holen</em> (1)
+                                </td>
+                                <td
+                                    style="padding: 12px 14px; vertical-align: top; border-right: 1px solid #e5e7eb; text-align: center;">
+                                    Manera</td>
+                                <td style="padding: 12px 14px; vertical-align: top; text-align: center;">
+                                    SÍ (Estructura satelital libre)</td>
+                            </tr>
+                            <!-- Neerlandés -->
+                            <tr style="border-bottom: 1px solid #e5e7eb; background-color: #fafafa;">
+                                <td
+                                    style="padding: 12px 14px; font-weight: 700; vertical-align: top; border-right: 1px solid #e5e7eb; background-color: #f9fafb; color: #111827; text-align: left;">
+                                    Neerlandés</td>
+                                <td
+                                    style="padding: 12px 14px; vertical-align: top; border-right: 1px solid #e5e7eb; text-align: center;">
+                                    METER / SACAR / LLEVAR</td>
+                                <td
+                                    style="padding: 12px 14px; vertical-align: top; border-right: 1px solid #e5e7eb; text-align: center;">
+                                    <em>steken</em> (1), <em>toveren</em> (2)<br>
+                                    <em>brengen</em> (2), <em>rijden</em> (2)
+                                </td>
+                                <td
+                                    style="padding: 12px 14px; vertical-align: top; border-right: 1px solid #e5e7eb; text-align: center;">
+                                    Manera</td>
+                                <td style="padding: 12px 14px; vertical-align: top; text-align: center;">
+                                    SÍ (Estructura satelital libre)</td>
+                            </tr>
+                            <!-- Español -->
+                            <tr style="border-bottom: 1px solid #e5e7eb;">
+                                <td
+                                    style="padding: 12px 14px; font-weight: 700; vertical-align: top; border-right: 1px solid #e5e7eb; background-color: #f9fafb; color: #111827; text-align: left;">
+                                    Español</td>
+                                <td
+                                    style="padding: 12px 14px; vertical-align: top; border-right: 1px solid #e5e7eb; text-align: center;">
+                                    METER / SACAR / LLEVAR</td>
+                                <td
+                                    style="padding: 12px 14px; vertical-align: top; border-right: 1px solid #e5e7eb; text-align: center;">
+                                    <em>meter</em> (3), <em>introducir</em> (2),<br>
+                                    <em>sacar</em> (4), <em>extraer</em> (1), <em>llevar</em> (4)
+                                </td>
+                                <td
+                                    style="padding: 12px 14px; vertical-align: top; border-right: 1px solid #e5e7eb; text-align: center;">
+                                    Trayectoria</td>
+                                <td style="padding: 12px 14px; vertical-align: top; text-align: center;">
+                                    NO (Requiere verbo de trayectoria)</td>
+                            </tr>
+                            <!-- Italiano: Fila 1 (METER / LLEVAR) -->
+                            <tr style="border-bottom: 1px solid #e5e7eb; background-color: #fafafa;">
+                                <td rowspan="2"
+                                    style="padding: 12px 14px; font-weight: 700; vertical-align: top; border-right: 1px solid #e5e7eb; background-color: #f9fafb; color: #111827; text-align: left;">
+                                    Italiano</td>
+                                <td
+                                    style="padding: 12px 14px; vertical-align: top; border-right: 1px solid #e5e7eb; text-align: center;">
+                                    METER / LLEVAR</td>
+                                <td
+                                    style="padding: 12px 14px; vertical-align: top; border-right: 1px solid #e5e7eb; text-align: center;">
+                                    <em>infila</em> (1), <em>introdurre</em> (1),<br>
+                                    <em>portare</em> (2), <em>condurre</em> (1)
+                                </td>
+                                <td
+                                    style="padding: 12px 14px; vertical-align: top; border-right: 1px solid #e5e7eb; text-align: center;">
+                                    Trayectoria</td>
+                                <td style="padding: 12px 14px; vertical-align: top; text-align: center;">
+                                    NO (Requiere verbo de trayectoria)</td>
+                            </tr>
+                            <!-- Italiano: Fila 2 (SACAR) -->
+                            <tr style="background-color: #fafafa;">
+                                <td
+                                    style="padding: 12px 14px; vertical-align: top; border-right: 1px solid #e5e7eb; text-align: center;">
+                                    SACAR</td>
+                                <td
+                                    style="padding: 12px 14px; vertical-align: top; border-right: 1px solid #e5e7eb; text-align: center;">
+                                    <em>estrarre</em> (3), <em>cavare</em> (1), <em>tirare</em> (1)
+                                </td>
+                                <td
+                                    style="padding: 12px 14px; vertical-align: top; border-right: 1px solid #e5e7eb; text-align: center;">
+                                    Trayectoria</td>
+                                <td style="padding: 12px 14px; vertical-align: top; text-align: center;">
+                                    NO (Se exceptúa híbrido <em>tirare fuori</em>)
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+
+
+        <!-- Diapositiva 12 -->
+        <div class="slide full-bleed">
+            <div class="split-layout">
+                <div class="column-text">
+                    <div class="content-card" style="padding: 0; width: 100%; max-width: none;">
+                        <h2>Conclusiones: Variación intratipológica</h2>
+                        <p
+                            style="font-size: 1.25rem; font-weight: 300; line-height: 1.6; color: var(--text-muted); margin-bottom: 1rem;">
+                            Se identificó una variación intratipológica asimétrica dentro de las lenguas
+                            romances (italiano frente a español), la cual matiza la clasificación rígidamente dicotómica
+                            propuesta originalmente en la literatura:
+                        </p>
+                        <ol
+                            style="font-size: 1.25rem; font-weight: 300; line-height: 1.6; color: var(--text-muted); padding-left: 1.5rem; margin-top: 0.5rem;">
+                            <li style="margin-bottom: 0.8rem;">
+                                <strong style="color: var(--secondary-color); font-weight: 600;">El español como modelo
+                                    canónico y
+                                    restrictivo (cf. Martínez-Vázquez, 2015):</strong>
+                                <ol type="a"
+                                    style="padding-left: 1.5rem; margin-top: 0.4rem; list-style-type: lower-alpha; font-size: 1.25rem; font-weight: 300;">
+                                    <li style="margin-bottom: 0.4rem;">El español muestra una adhesión estricta a la
+                                        tipología de marco verbal.</li>
+                                    <li style="margin-bottom: 0.4rem;">El 60% de todas sus producciones simples utilizan
+                                        verbos de trayectoria, y sólo un 12% emplea verbos de manera pura (e incluso en
+                                        estos casos, se trata de verbos de fuerza como '<em>lanzar</em>' y
+                                        '<em>arrojar</em>' en los que la manera forma parte de la naturaleza de la
+                                        acción y no viola la restricción).</li>
+                                    <li style="margin-bottom: 0.4rem;">En la descripción espontánea, en español se
+                                        prefiere de forma abrumadora omitir la manera para mantener la simplicidad,
+                                        relegando cualquier descripción física detallada únicamente a la segunda
+                                        condición de descripción.</li>
+                                </ol>
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+                <div class="column-image">
+                    <div class="split-image-shade"></div>
+                    <img src="Images/Diapo 10.png" alt="Diapositiva 12" class="split-image">
+                </div>
+            </div>
+        </div>
+
+        <!-- Diapositiva 13 -->
+        <div class="slide full-bleed">
+            <div class="split-layout">
+                <div class="column-image">
+                    <div class="split-image-shade"></div>
+                    <img src="Images/Diapo 11.png" alt="Diapositiva 13" class="split-image"
+                        onclick="openLightbox(this.src)">
+                </div>
+                <div class="column-text">
+                    <div class="content-card" style="padding: 0; width: 100%; max-width: none;">
+                        <h2>Conclusiones: Variación intratipológica</h2>
+                        <ol start="2"
+                            style="font-size: 1.25rem; font-weight: 300; line-height: 1.6; color: var(--text-muted); padding-left: 1.5rem; margin-top: 0.5rem;">
+                            <li style="margin-bottom: 0.8rem;">
+                                <strong style="color: var(--secondary-color); font-weight: 600;">El italiano como lengua
+                                    flexible de
+                                    transición intratipológica (hibridación morfosintáctica) (cf. Gómez Vazquez,
+                                    2019):</strong>
+                                <ol type="a"
+                                    style="padding-left: 1.5rem; margin-top: 0.4rem; list-style-type: lower-alpha; font-size: 1.25rem; font-weight: 300;">
+                                    <li style="margin-bottom: 0.4rem;">Aunque se clasifica tradicionalmente como lengua
+                                        de
+                                        marco verbal, sus verbos de trayectoria caen notablemente al 44%, mientras que
+                                        los
+                                        verbos de manera pura se duplican en comparación con el español, alcanzando el
+                                        24% de
+                                        las oraciones simples.</li>
+                                    <li style="margin-bottom: 0.4rem;">Este comportamiento se debe a la popularización
+                                        de
+                                        estructuras verbales sintagmáticas (construcciones verbo-satélite), que
+                                        funcionan de
+                                        forma idéntica a un 'phrasal verb'.</li>
+                                    <li style="margin-bottom: 0.4rem;">Un ejemplo prototípico en el corpus es
+                                        '<em>tirare fuori</em>' (en SACAR): “<em>Il mago tira fuori un coniglio dal
+                                            cappello</em>”,
+                                        o '<em>strappare via</em>' (en QUITAR): “<em>La signora strappa via la tovaglia
+                                            dal tavolo</em>”.
+                                        Esto indica que la tipología de una lengua no es absolutamente rígida, sino que
+                                        se ve comúnmente influenciada por recursos idiomáticos locales.</li>
+                                </ol>
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Diapositiva 14 -->
+        <div class="slide full-bleed">
+            <div class="split-layout">
+                <div class="column-text">
+                    <div class="content-card" style="padding: 0; width: 100%; max-width: none;">
+                        <h2>Conclusiones: Variación intratipológica</h2>
+                        <ol start="3"
+                            style="font-size: 1.25rem; font-weight: 300; line-height: 1.6; color: var(--text-muted); padding-left: 1.5rem; margin-top: 0.5rem;">
+                            <li style="margin-bottom: 0.8rem;">
+                                <strong style="color: var(--secondary-color); font-weight: 600;">Homogeneidad germánica
+                                    (alemán vs.
+                                    neerlandés) (cf. De Knop & Dirven, 2008):</strong>
+                                <ol type="a"
+                                    style="padding-left: 1.5rem; margin-top: 0.4rem; list-style-type: lower-alpha; font-size: 1.25rem; font-weight: 300;">
+                                    <li style="margin-bottom: 0.4rem;">En contraste con la familia romance, las lenguas
+                                        germánicas analizadas muestran una uniformidad estadística casi perfecta.</li>
+                                    <li style="margin-bottom: 0.4rem;">El alemán (56% de verbos de manera) y el
+                                        neerlandés (58% de verbos de manera) codifican sistemáticamente la manera en el
+                                        verbo principal, utilizando una rica variedad morfológica de partículas para la
+                                        trayectoria.</li>
+                                    <li style="margin-bottom: 0.4rem;">La variación entre el alemán y el neerlandés no
+                                        es morfosintáctica sino léxica, manifestándose principalmente en la selección de
+                                        frases causativas tradicionales frente a verbos integrados complejos:
+                                        <ol type="i"
+                                            style="padding-left: 1.5rem; margin-top: 0.3rem; list-style-type: lower-roman; font-size: 1.25rem; font-weight: 300;">
+                                            <li style="margin-bottom: 0.2rem;">Alemán: “<em>lässt ihre Hand langsam in
+                                                    die schattige Öffnung gleiten.</em>”</li>
+                                            <li style="margin-bottom: 0.2rem;">Neerlandés: “<em>schuift haar vingers
+                                                    behoedzaam in de duistere opening die als mond dient.</em>”</li>
+                                        </ol>
+                                    </li>
+                                </ol>
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+                <div class="column-image">
+                    <div class="split-image-shade"></div>
+                    <img src="Images/Diapo 12.png" alt="Diapositiva 14" class="split-image zoomable-image"
+                        onclick="openLightbox(this.src)">
+                </div>
+            </div>
+        </div>
+
+        <!-- Diapositiva 15 -->
+        <div class="slide full-bleed" id="slide-15"
+            style="padding: 2.5rem 4rem; overflow-y: auto; justify-content: center; align-items: center;">
+            <div class="content-card"
+                style="padding: 0; width: 100%; max-width: 1300px; box-sizing: border-box; margin: 0 auto;">
+                <h2
+                    style="margin-top: 0; font-size: 2.2rem; margin-bottom: 1rem; color: var(--secondary-color); border-bottom: 2px solid var(--glass-border); padding-bottom: 0.4rem;">
+                    Referencias mínimas</h2>
+                <ul style="list-style: none; padding: 0; margin: 0;">
+                    <li
+                        style="padding-left: 1.8rem; text-indent: -1.8rem; margin-bottom: 0.7rem; font-size: 1.02rem; line-height: 1.5; color: var(--text-muted);">
+                        Beavers, J., Levin, B., & Tham, S. W. (2010). The typology of motion expressions revisited.
+                        <em>Journal of Linguistics</em>, 46(2), 331-377. <a
+                            href="https://doi.org/10.1017/S0022226709990272" target="_blank"
+                            style="color: var(--accent-color); text-decoration: underline; word-break: break-all;">https://doi.org/10.1017/S0022226709990272</a>
+                    </li>
+                    <li
+                        style="padding-left: 1.8rem; text-indent: -1.8rem; margin-bottom: 0.7rem; font-size: 1.02rem; line-height: 1.5; color: var(--text-muted);">
+                        De Knop, S., & Dirven, R. (2008). Motion and location events in German, French and English: A
+                        typological, contrastive and pedagogical approach. En S. De Knop & T. De Rycker (Eds.),
+                        <em>Cognitive approaches to pedagogical grammar: A volume in honour of René Dirven</em> (pp.
+                        295-324). Mouton de Gruyter. <a href="http://hdl.handle.net/2078.3/121090" target="_blank"
+                            style="color: var(--accent-color); text-decoration: underline; word-break: break-all;">http://hdl.handle.net/2078.3/121090</a>
+                    </li>
+                    <li
+                        style="padding-left: 1.8rem; text-indent: -1.8rem; margin-bottom: 0.7rem; font-size: 1.02rem; line-height: 1.5; color: var(--text-muted);">
+                        Gómez Vázquez, D. (2019). <em>Posture verbs and internally-caused verbs in Romance and Germanic
+                            languages: Causativity, stationary motion, and intransitive-locative alternations</em>
+                        (Tesis doctoral, Universitat Autònoma de Barcelona). <a
+                            href="https://ddd.uab.cat/pub/tesis/2019/hdl_10803_669400/dgv1de1.pdf" target="_blank"
+                            style="color: var(--accent-color); text-decoration: underline; word-break: break-all;">https://ddd.uab.cat/pub/tesis/2019/hdl_10803_669400/dgv1de1.pdf</a>
+                    </li>
+                    <li
+                        style="padding-left: 1.8rem; text-indent: -1.8rem; margin-bottom: 0.7rem; font-size: 1.02rem; line-height: 1.5; color: var(--text-muted);">
+                        Hickmann, M., Hendriks, H., Harr, A. K., & Bonnet, P. (2018). Caused motion across child
+                        languages: A comparison of English, German, and French. <em>Journal of Child Language</em>,
+                        45(6), 1247-1274. <a href="https://doi.org/10.1017/S0305000918000168" target="_blank"
+                            style="color: var(--accent-color); text-decoration: underline; word-break: break-all;">https://doi.org/10.1017/S0305000918000168</a>
+                    </li>
+                    <li
+                        style="padding-left: 1.8rem; text-indent: -1.8rem; margin-bottom: 0.7rem; font-size: 1.02rem; line-height: 1.5; color: var(--text-muted);">
+                        Kopecka, A., & Narasimhan, B. (Eds.). (2012). <em>Events of putting and taking: A
+                            crosslinguistic perspective</em>. John Benjamins. <a href="https://doi.org/10.1075/tsl.100"
+                            target="_blank"
+                            style="color: var(--accent-color); text-decoration: underline; word-break: break-all;">https://doi.org/10.1075/tsl.100</a>
+                    </li>
+                    <li
+                        style="padding-left: 1.8rem; text-indent: -1.8rem; margin-bottom: 0.7rem; font-size: 1.02rem; line-height: 1.5; color: var(--text-muted);">
+                        Lewandowski, W. (2021). Variable motion event encoding within languages and language types: A
+                        usage-based perspective. <em>Language and Cognition</em>, 13(1), 34-65. <a
+                            href="https://doi.org/10.1017/langcog.2020.25" target="_blank"
+                            style="color: var(--accent-color); text-decoration: underline; word-break: break-all;">https://doi.org/10.1017/langcog.2020.25</a>
+                    </li>
+                    <li
+                        style="padding-left: 1.8rem; text-indent: -1.8rem; margin-bottom: 0.7rem; font-size: 1.02rem; line-height: 1.5; color: var(--text-muted);">
+                        Lewandowski, W., & Mateu, J. (2016). Thinking for translating and intra-typological variation in
+                        satellite-framed languages. <em>Review of Cognitive Linguistics</em>, 14(1), 185–208. <a
+                            href="https://doi.org/10.1075/rcl.14.1.08lew" target="_blank"
+                            style="color: var(--accent-color); text-decoration: underline; word-break: break-all;">https://doi.org/10.1075/rcl.14.1.08lew</a>
+                    </li>
+                    <li
+                        style="padding-left: 1.8rem; text-indent: -1.8rem; margin-bottom: 0.7rem; font-size: 1.02rem; line-height: 1.5; color: var(--text-muted);">
+                        Martínez-Vázquez, M. (2015). Satellite-framed patterns in Romance languages: A corpus-based
+                        study. <em>Languages in Contrast</em>, 15(2), 181-207. <a
+                            href="https://doi.org/10.1075/lic.15.2.02mar" target="_blank"
+                            style="color: var(--accent-color); text-decoration: underline; word-break: break-all;">https://doi.org/10.1075/lic.15.2.02mar</a>
+                    </li>
+                    <li
+                        style="padding-left: 1.8rem; text-indent: -1.8rem; margin-bottom: 0.7rem; font-size: 1.02rem; line-height: 1.5; color: var(--text-muted);">
+                        Molés-Cases, T., & Cifuentes-Férez, P. (2020). On the translation of boundary-crossing events:
+                        Evidence from an experiment with German and Spanish translation students. <em>Vigo International
+                            Journal of Applied Linguistics</em>. <a href="https://doi.org/10.35869/vial.v0i17.1466"
+                            target="_blank"
+                            style="color: var(--accent-color); text-decoration: underline; word-break: break-all;">https://doi.org/10.35869/vial.v0i17.1466</a>
+                    </li>
+                    <li
+                        style="padding-left: 1.8rem; text-indent: -1.8rem; margin-bottom: 0.7rem; font-size: 1.02rem; line-height: 1.5; color: var(--text-muted);">
+                        Talmy, L. (1985). Lexicalization patterns: Semantic structure in lexical forms. In T. Shopen
+                        (Ed.), <em>Language typology and syntactic description</em> (pp. 36-149). Cambridge University
+                        Press.
+                    </li>
+                    <li
+                        style="padding-left: 1.8rem; text-indent: -1.8rem; margin-bottom: 0.7rem; font-size: 1.02rem; line-height: 1.5; color: var(--text-muted);">
+                        Talmy, L. (1991). Path to realization: A typology of event conflation. In <em>Proceedings of the
+                            Seventeenth Annual Meeting of the Berkeley Linguistics Society</em> (pp. 480–520).
+                    </li>
+                    <li
+                        style="padding-left: 1.8rem; text-indent: -1.8rem; margin-bottom: 0.7rem; font-size: 1.02rem; line-height: 1.5; color: var(--text-muted);">
+                        Talmy, L. (2000). <em>Toward a cognitive semantics II: Typology and process in concept
+                            structuring</em>. MIT Press.
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Diapositiva Final -->
+        <div class="slide title-slide">
+            <div class="title-card show" style="gap: 1rem; padding: 3rem 5rem;">
+                <div
+                    style="display: flex; flex-direction: column; gap: 0.8rem; text-align: center; margin-bottom: 2.2rem;">
+                    <h2
+                        style="font-size: 2.5rem; color: var(--secondary-color); margin: 0; border: none; line-height: 1.2;">
+                        ¡Muchas gracias!</h2>
+                    <h2
+                        style="font-size: 2.5rem; color: var(--secondary-color); margin: 0; border: none; line-height: 1.2;">
+                        Vielen Dank!</h2>
+                    <h2
+                        style="font-size: 2.5rem; color: var(--secondary-color); margin: 0; border: none; line-height: 1.2;">
+                        Dank je wel!</h2>
+                    <h2
+                        style="font-size: 2.5rem; color: var(--secondary-color); margin: 0; border: none; line-height: 1.2;">
+                        Grazie mille!</h2>
+                </div>
+                <div class="speaker-info"
+                    style="gap: 0.5rem; margin-top: 0.5rem; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 1.5rem; width: 100%;">
+                    <p style="margin: 0; font-size: 1.8rem; color: var(--text-color);"><strong>Daniel Rojas
+                            Plata</strong></p>
+                    <p style="margin: 0; font-size: 1.4rem; color: var(--text-muted);">
+                        <strong>drplata@colmex.mx</strong>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Lógica de navegación de diapositivas
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        let slide15TimeoutId = null;
+
+        function resetSlide15AutoAdvance() {
+            if (slide15TimeoutId) {
+                clearTimeout(slide15TimeoutId);
+                slide15TimeoutId = null;
+            }
+        }
+
+        function updateSlides() {
+            resetSlide15AutoAdvance();
+
+            slides.forEach((slide, index) => {
+                slide.classList.remove('active', 'past', 'future');
+
+                if (index === currentSlide) {
+                    slide.classList.add('active');
+                    // Reproducir video si hay uno en la diapositiva activa, ignorando el de la portada
+                    const video = slide.querySelector('video');
+                    if (video && video.id !== 'bg-video') video.play().catch(e => console.log(e));
+
+                    // Activar animación de luz dorada en la Diapositiva 9 después de 5 segundos
+                    if (slide.id === 'slide-9') {
+                        triggerGoldenLightWithDelay();
+                    } else {
+                        resetGoldenLight();
+                    }
+
+                    // Transición automática de la Diapositiva 15 a la Diapositiva Final tras 4 segundos
+                    if (slide.id === 'slide-15') {
+                        slide15TimeoutId = setTimeout(() => {
+                            if (currentSlide === index) {
+                                currentSlide++;
+                                updateSlides();
+                            }
+                        }, 4000);
+                    }
+                } else {
+                    if (index < currentSlide) {
+                        slide.classList.add('past');
+                    } else {
+                        slide.classList.add('future');
+                    }
+                    // Pausar y reiniciar video si ya no es la activa, ignorando el de la portada
+                    const video = slide.querySelector('video');
+                    if (video && video.id !== 'bg-video') {
+                        video.pause();
+                        video.currentTime = 0;
+                    }
+                }
+            });
+        }
+
+        // Lógica de la animación de luz dorada para la Diapositiva 9
+        let goldenAnimationId = null;
+        let goldenTimeoutId = null;
+
+        function resetGoldenLight() {
+            if (goldenTimeoutId) {
+                clearTimeout(goldenTimeoutId);
+                goldenTimeoutId = null;
+            }
+            if (goldenAnimationId) {
+                cancelAnimationFrame(goldenAnimationId);
+                goldenAnimationId = null;
+            }
+
+            const path = document.getElementById('golden-light-path');
+            const spark = document.getElementById('golden-spark');
+            const b2 = document.getElementById('cell-b2');
+            const b3 = document.getElementById('cell-b3');
+            const c4 = document.getElementById('cell-c4');
+            const c5 = document.getElementById('cell-c5');
+
+            if (path) {
+                path.setAttribute('d', '');
+                path.style.strokeDasharray = '0';
+                path.style.strokeDashoffset = '0';
+            }
+            if (spark) spark.style.opacity = '0';
+
+            [b2, b3, c4, c5].forEach(cell => {
+                if (cell) {
+                    cell.style.transition = 'background-color 0.8s ease, box-shadow 0.8s ease';
+                    cell.style.backgroundColor = '';
+                    cell.style.boxShadow = '';
+                }
+            });
+        }
+
+        function triggerGoldenLightWithDelay() {
+            resetGoldenLight();
+            goldenTimeoutId = setTimeout(() => {
+                animateGoldenLight();
+            }, 5000);
+        }
+
+        function animateGoldenLight() {
+            const container = document.getElementById('table-container-9');
+            const path = document.getElementById('golden-light-path');
+            const spark = document.getElementById('golden-spark');
+            const b2 = document.getElementById('cell-b2');
+            const b3 = document.getElementById('cell-b3');
+            const c4 = document.getElementById('cell-c4');
+            const c5 = document.getElementById('cell-c5');
+
+            if (!container || !path || !b2 || !b3 || !c4 || !c5) return;
+
+            if (goldenAnimationId) cancelAnimationFrame(goldenAnimationId);
+
+            // Restablecer estilos de celda iniciales
+            [b2, b3, c4, c5].forEach(cell => {
+                cell.style.transition = 'background-color 0.8s ease, box-shadow 0.8s ease';
+                cell.style.backgroundColor = '';
+                cell.style.boxShadow = '';
+            });
+
+            const cRect = container.getBoundingClientRect();
+            const rB2 = b2.getBoundingClientRect();
+            const rB3 = b3.getBoundingClientRect();
+            const rC4 = c4.getBoundingClientRect();
+            const rC5 = c5.getBoundingClientRect();
+
+            // Coordenadas relativas del bloque B2 + B3 (Alemán + Neerlandés)
+            const x1_min = rB2.left - cRect.left;
+            const x1_max = rB2.right - cRect.left;
+            const y1_min = rB2.top - cRect.top;
+            const y1_max = rB3.bottom - cRect.top;
+
+            // Coordenadas relativas del bloque C4 + C5 (Español + Italiano)
+            const x2_min = rC4.left - cRect.left;
+            const x2_max = rC4.right - cRect.left;
+            const y2_min = rC4.top - cRect.top;
+            const y2_max = rC5.bottom - cRect.top;
+
+            // Trayectoria que sigue el contorno exacto de las celdas sin líneas diagonales:
+            // 1. Empieza en el punto de intersección (x1_max, y1_max)
+            // 2. B2+B3: borde inferior -> borde izquierdo -> borde superior -> borde derecho (completa B2+B3)
+            // 3. C4+C5: borde superior -> borde derecho -> borde inferior -> borde izquierdo (completa C4+C5)
+            const d = `M ${x1_max} ${y1_max} ` +
+                `L ${x1_min} ${y1_max} ` +
+                `L ${x1_min} ${y1_min} ` +
+                `L ${x1_max} ${y1_min} ` +
+                `L ${x1_max} ${y1_max} ` +
+                `L ${x2_max} ${y2_min} ` +
+                `L ${x2_max} ${y2_max} ` +
+                `L ${x2_min} ${y2_max} ` +
+                `L ${x2_min} ${y2_min}`;
+
+            path.setAttribute('d', d);
+
+            const totalLength = path.getTotalLength();
+            path.style.strokeDasharray = totalLength;
+            path.style.strokeDashoffset = totalLength;
+            spark.style.opacity = '1';
+
+            // Calcular punto donde finaliza el contorno del primer bloque (B2+B3)
+            const w1 = x1_max - x1_min;
+            const h1 = y1_max - y1_min;
+            const distB = 2 * w1 + 2 * h1;
+            const ratioB = totalLength > 0 ? (distB / totalLength) : 0.5;
+
+            const duration = 3500; // 3.5s de animación fluida
+            let startTime = null;
+
+            function step(timestamp) {
+                if (!startTime) startTime = timestamp;
+                const progress = Math.min((timestamp - startTime) / duration, 1);
+
+                const eased = progress < 0.5
+                    ? 2 * progress * progress
+                    : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+
+                const currentOffset = totalLength * (1 - eased);
+                path.style.strokeDashoffset = currentOffset;
+
+                const point = path.getPointAtLength(totalLength * eased);
+                spark.setAttribute('cx', point.x);
+                spark.setAttribute('cy', point.y);
+
+                // Iluminar celdas al paso/cierre del contorno de cada grupo
+                if (eased >= ratioB - 0.02) {
+                    b2.style.backgroundColor = 'rgba(241, 196, 15, 0.18)';
+                    b3.style.backgroundColor = 'rgba(241, 196, 15, 0.18)';
+                    b2.style.boxShadow = 'inset 0 0 12px rgba(241, 196, 15, 0.35)';
+                    b3.style.boxShadow = 'inset 0 0 12px rgba(241, 196, 15, 0.35)';
+                }
+                if (eased >= 0.98) {
+                    c4.style.backgroundColor = 'rgba(241, 196, 15, 0.18)';
+                    c5.style.backgroundColor = 'rgba(241, 196, 15, 0.18)';
+                    c4.style.boxShadow = 'inset 0 0 12px rgba(241, 196, 15, 0.35)';
+                    c5.style.boxShadow = 'inset 0 0 12px rgba(241, 196, 15, 0.35)';
+                }
+
+                if (progress < 1) {
+                    goldenAnimationId = requestAnimationFrame(step);
+                } else {
+                    spark.style.opacity = '0';
+                }
+            }
+
+            goldenAnimationId = requestAnimationFrame(step);
+        }
+
+        window.addEventListener('resize', () => {
+            if (slides[currentSlide] && slides[currentSlide].id === 'slide-9') {
+                resetGoldenLight();
+                animateGoldenLight();
+            }
+        });
+
+        // Navegación con teclado
+        document.addEventListener('keydown', (e) => {
+            // Barra espaciadora o flecha derecha (avanzar)
+            if (e.code === 'Space' || e.code === 'ArrowRight') {
+                e.preventDefault(); // Evitar scroll con la barra
+                if (currentSlide < slides.length - 1) {
+                    currentSlide++;
+                    updateSlides();
+                }
+            }
+            // Flecha izquierda (retroceder)
+            else if (e.code === 'ArrowLeft') {
+                e.preventDefault();
+                if (currentSlide > 0) {
+                    currentSlide--;
+                    updateSlides();
+                }
+            }
+        });
+
+        // Inicializar el estado
+        updateSlides();
+
+        // Lógica del Video y Aparición del Cuadro
+        const bgVideo = document.getElementById('bg-video');
+        const titleCard = document.querySelector('.title-card');
+
+        // Lógica para Pantalla Completa
+        function toggleFullScreen() {
+            // Empezar a reproducir el video de la diapositiva activa al entrar en pantalla completa
+            const activeSlide = slides[currentSlide];
+            const video = activeSlide ? activeSlide.querySelector('video') : null;
+            if (video && video.paused) {
+                video.play().catch(e => console.log("No se pudo iniciar el video", e));
+            }
+
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.error(`Error al intentar entrar a pantalla completa: ${err.message}`);
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+
+        if (bgVideo) {
+            bgVideo.addEventListener('timeupdate', function () {
+                // Aparecer cuadro en el segundo 17 de forma suave
+                if (this.currentTime >= 17 && !titleCard.classList.contains('show')) {
+                    titleCard.classList.add('show');
+                } else if (this.currentTime < 17 && titleCard.classList.contains('show')) {
+                    // Ocultarlo si se reinicia el video
+                    titleCard.classList.remove('show');
+                }
+            });
+        }
+
+        const ejemplosVideo = document.getElementById('ejemplos-video');
+        const ejemplosCard = document.getElementById('ejemplos-card');
+
+        if (ejemplosVideo) {
+            ejemplosVideo.addEventListener('timeupdate', function () {
+                // Aparecer cuadro en el segundo 5 de forma suave
+                if (this.currentTime >= 5 && !ejemplosCard.classList.contains('show')) {
+                    ejemplosCard.classList.add('show');
+                } else if (this.currentTime < 5 && ejemplosCard.classList.contains('show')) {
+                    ejemplosCard.classList.remove('show');
+                }
+            });
+        }
+
+        // Lógica del Lightbox
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightbox-img');
+
+        function openLightbox(src) {
+            lightboxImg.src = src;
+            lightbox.classList.add('active');
+        }
+
+        function closeLightbox(event) {
+            // Evitar cerrar si se hace clic en la barra de scroll nativa
+            if (event && event.target === lightbox) {
+                if (event.clientX >= lightbox.clientWidth || event.clientY >= lightbox.clientHeight) {
+                    return; // Es un clic en el scrollbar
+                }
+            }
+            lightbox.classList.remove('active');
+            // Limpiar src después de la transición para evitar parpadeos al abrir otra
+            setTimeout(() => {
+                if (!lightbox.classList.contains('active')) lightboxImg.src = '';
+            }, 400);
+        }
+
+        // Cerrar con la tecla Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && lightbox.classList.contains('active')) {
+                closeLightbox();
+            }
+        });
+    </script>
+</body>
+
+</html>
